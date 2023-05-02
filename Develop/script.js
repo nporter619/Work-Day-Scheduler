@@ -14,11 +14,41 @@ $(function () {
   // attribute of each time-block be used to conditionally add or remove the
   // past, present, and future classes? How can Day.js be used to get the
   // current hour in 24-hour time?
+    const currentHour = dayjs().hour();
+    // run through the iteration of 9-5 on a 24 hour clock
+    for (let hour = 9; hour <= 17; hour++) {
+      let timeBlockStatus = "";
+      // time block status to be determined
+      if (hour < currentHour) {
+        timeBlockStatus = "past";
+      } else if (hour === currentHour) {
+        timeBlockStatus = "present";
+      } else {
+        timeBlockStatus = "future";
+      }
+      // if over 12 add pm if =12 add pm else add am
+      const hourLabel = hour > 12 ? `${hour - 12}PM` : hour === 12 ? `${hour}PM` : `${hour}AM`;
+      // add our new timeblocks with the timeBlockStatus and hourLabel using backquotes
+      const timeBlock = `
+    <div id="hour-${hour}" class="row time-block ${timeBlockStatus}">
+      <div class="col-2 col-md-1 hour text-center py-3">${hourLabel}</div>
+      <textarea class="col-8 col-md-10 description" rows="3"></textarea>
+      <button class="btn saveBtn col-2 col-md-1" aria-label="save">
+        <i class="fas fa-save" aria-hidden="true"></i>
+      </button>
+    </div>
+    `;
+      
+     $(".container-lg").append(timeBlock);  
+    };
+  
   //
   // TODO: Add code to get any user input that was saved in localStorage and set
   // the values of the corresponding textarea elements. HINT: How can the id
   // attribute of each time-block be used to do this?
   //
+  
+  
   // TODO: Add code to display the current date in the header of the page.
   // Get the current date using Day.js
   const currentDate = dayjs().format("dddd, MMMM D, YYYY");
