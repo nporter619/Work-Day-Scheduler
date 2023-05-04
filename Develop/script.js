@@ -1,17 +1,36 @@
 $(function () {
- 
+  // Generates the time-blocks for the 9-5 work schedule
   function createTimeBlocks() {
+      const now = dayjs();
+      const currentHour = now.hour();
+
+      // Get a reference to the container element that that time-blocks will be appended ot
+      const containerEl = $(".container-lg");
+      // Empty the container just in case it already has time blocks
+      containerEl.empty();
+
       // run through the iteration of 9-5 on a 24 hour clock
       for (let hour = 9; hour <= 17; hour++) {
+          let timeBlockStatus = "";
+          // time block status to be determined
+          if (hour < currentHour) {
+              timeBlockStatus = "past";
+          } else if (hour === currentHour) {
+              timeBlockStatus = "present";
+          } else {
+              timeBlockStatus = "future";
+          }
+
           // if over 12 add pm if =12 add pm else add am
           const hourLabel = hour > 12 ? `${hour - 12}PM` : hour === 12 ? `${hour}PM` : `${hour}AM`;
-          const id = 'hour-' + hour;
-          // Get the saved item for the current hour;
+          // The id of the time-block
+          const id = `hour-${hour}`;
+          // Gets the current hour description from local storage if found
           let description = getSavedTimeBlock(id);
 
-          // add our new timeblocks with the timeBlockStatus and hourLabel using backquotes
+          // Create the time-block with the label and description (if found)
           const timeBlock = `
-          <div id="${id}" class="row time-block past">
+          <div id="${id}" class="row time-block ${timeBlockStatus}">
           <div class="col-2 col-md-1 hour text-center py-3">${hourLabel}</div>
           <textarea class="col-8 col-md-10 description" rows="3">${description}</textarea>
           <button class="btn saveBtn col-2 col-md-1" aria-label="save">
@@ -20,63 +39,61 @@ $(function () {
           </div>
           `;
 
-          $(".container-lg").append(timeBlock);
+          // Append the time-block to the container
+          containerEl.append(timeBlock);
       }
 
-      // This will update the present and future time blocks every hour
-      updateTimeBlockStatus();
-  }
-
-  // Updates the present and future time blocks
-  function updateTimeBlockStatus() {
-      const now = dayjs();
-      const hour = Number(now.hour());
-
-      // Time remaining is the total amount of minutes left in the hour
-      // This is necessary so we can update the present and future slots on time
+      // Time remaining is the total amount of minutes remaining in the hour
+      // This is necessary to update the present and future time-blocks on time
       const timeRemaining = 60 - Number(now.minute());
-
-      // Remove status
-      $('.time-block').removeClass('future present');
-
-      // Set the present and future 
-      $('#hour-' + hour).addClass('present');
-      $('#hour-' + (hour + 1)).addClass('future');
-
-      // Call again once the new hour started
-      setTimeout(updateTimeBlockStatus, timeRemaining * 1000 * 60);
+      
+      // Re-create the time-blocks again once the new hour started
+      setTimeout(createTimeBlocks, timeRemaining * 1000 * 60);
   }
 
-  // Saves the specified hour to local storage
+  // Saves the time block id and value to local storage
   function onSaveClick(e) {
-      const timeBlockId = $(this).closest(".time-block").attr("id");
-      const eventDescription = $(this).siblings("textarea").val();
+      const saveButton = $(this);
+      // Get the id of the closest time-block
+      const timeBlockId = saveButton.closest(".time-block").attr("id");
+      // Get the description value
+      const description = $.trim(saveButton.siblings("textarea").val());
 
-      // Save the event data as a JSON string
-      const eventData = {
-          description: eventDescription,
+      // If the description is empty, then remove it from local storage
+      if (description === "") {
+          localStorage.removeItem(timeBlockId);
+          return;
+      }
+
+      // Create the JSON to save to local storage
+      const itemToSave = {
+          description: description,
       };
 
-      localStorage.setItem(timeBlockId, JSON.stringify(eventData));
+      // Persist in local storage
+      localStorage.setItem(timeBlockId, JSON.stringify(itemToSave));
   };
 
-  // Gets the specified hour from local storage
-  function getSavedTimeBlock(hour) {
-      const savedItem = localStorage.getItem(hour);
-      return savedItem ? JSON.parse(savedItem).description : '';
+  // Gets the specified hour(timeBlockId) from local storage
+  function getSavedTimeBlock(timeBlockId) {
+      // Get from local storage
+      const savedItem = localStorage.getItem(timeBlockId);
+      // If empty, return an empty string otherwise return the description
+      return savedItem ? JSON.parse(savedItem).description : "";
   }
-  // Sets the current date 
-  function setCurrentDay() {
-      // Get the current date using Day.js
+
+  // Sets the current date in the current date header
+  function setCurrentDayHeader() {
+      // Get the current date using dayjs
       const currentDate = dayjs().format("dddd, MMMM D, YYYY");
 
       // Set the text content of the element with ID "currentDay" to the formatted date
       $("#currentDay").text(currentDate);
   }
 
-  setCurrentDay();
+  setCurrentDayHeader();
   createTimeBlocks();
 
-  // This must be set after the createTimeBlocks as the save buttons will not be in the DOM yet
+  // set after the createTimeBlocks as the save buttons will not be in the DOM yet
   $(".saveBtn").on("click", onSaveClick);
 });
