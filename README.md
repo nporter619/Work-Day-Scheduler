@@ -7,3 +7,5 @@ How to Use: Open up the page click on any box you want to schedule something for
 License:N/A
 
 Link to application: https://nporter619.github.io/Work-Day-Scheduler/
+
+Screenshot: ![Alt text](Develop/assets/_Users_newmanporter_bootcamp_Work-Day-Scheduler_Develop_index.html.png)
